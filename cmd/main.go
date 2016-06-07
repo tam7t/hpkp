@@ -4,6 +4,7 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"encoding/json"
+	"encoding/pem"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -57,13 +58,19 @@ func cert() {
 		log.Fatal(err)
 	}
 
-	certs, err := x509.ParseCertificates(contents)
-	if err != nil {
-		log.Fatal(err)
-	}
+	var block *pem.Block
 
-	for i := range certs {
-		fmt.Println(hpkp.Fingerprint(certs[i]))
+	for len(contents) > 0 {
+		block, contents = pem.Decode(contents)
+		if block == nil {
+			break
+		}
+
+		cert, err := x509.ParseCertificate(block.Bytes)
+		if err != nil {
+			log.Fatal(err)
+		}
+		fmt.Println(hpkp.Fingerprint(cert))
 	}
 }
 
