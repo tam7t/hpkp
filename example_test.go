@@ -25,11 +25,10 @@ func Example() {
 
 	client := &http.Client{}
 	client.Transport = &http.Transport{
-		DialTLS: hpkp.NewPinDialer(s, true, nil),
+		DialTLS: hpkp.PinOnlyDialer(s),
 	}
 
-	req, err := http.NewRequest("GET", "https://www.github.com", nil)
-	resp, err := client.Do(req)
+	resp, err := client.Get("https://github.com")
 	if err != nil {
 		log.Fatal(err)
 	}
