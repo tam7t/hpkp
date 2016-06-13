@@ -13,8 +13,20 @@ type Storage interface {
 	Add(host string, d *Header)
 }
 
-// NewPinDialer returns a function suitable for use as DialTLS
-func NewPinDialer(s Storage, pinOnly bool, defaultTLSConfig *tls.Config) func(network, addr string) (net.Conn, error) {
+// PinOnlyDialer returns a dialer that ignores root trusts in favor of known
+// certificate pins
+func PinOnlyDialer(s Storage) func(network, addr string) (net.Conn, error) {
+	return newPinDialer(s, true, nil)
+}
+
+// TLSConfigDialer returns a dialer that uses pins in addition to the provided
+// tls.Config options
+func TLSConfigDialer(s Storage, conf *tls.Config) func(network, addr string) (net.Conn, error) {
+	return newPinDialer(s, false, conf)
+}
+
+// newPinDialer returns a function suitable for use as DialTLS
+func newPinDialer(s Storage, pinOnly bool, defaultTLSConfig *tls.Config) func(network, addr string) (net.Conn, error) {
 	return func(network, addr string) (net.Conn, error) {
 		// might need to strip ":https" from addr as well
 		h := s.Lookup(strings.TrimRight(addr, ":443"))
