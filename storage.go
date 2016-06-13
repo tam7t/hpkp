@@ -12,7 +12,7 @@ type MemStorage struct {
 }
 
 // NewMemStorage initializes hpkp in-memory datastructure
-func NewMemStorage() *MemStorage {
+func NewMemStorage() Storage {
 	m := &MemStorage{}
 	m.domains = make(map[string]Header)
 	return m
