@@ -11,8 +11,8 @@ type MemStorage struct {
 	mutex   sync.Mutex
 }
 
-// NewMemStorage initializes hsts in-memory datastructure
-func NewMemStorage() *MemStorage {
+// NewMemStorage initializes hpkp in-memory datastructure
+func NewMemStorage() Storage {
 	m := &MemStorage{}
 	m.domains = make(map[string]Header)
 	return m

@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-// Storage is threadsafe hsts storage interface
+// Storage is threadsafe hpkp storage interface
 type Storage interface {
 	Lookup(host string) *Header
 	Add(host string, d *Header)
