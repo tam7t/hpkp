@@ -26,16 +26,24 @@ func (h *Header) Matches(pin string) bool {
 	return false
 }
 
-// ParseHeader parses the hpkp information from an http.Response. It should only
-// be used on HTTPS connections.
+// ParseHeader parses the hpkp information from an http.Response.
 func ParseHeader(resp *http.Response) *Header {
-	header := &Header{
-		Sha256Pins: []string{},
+	if resp == nil {
+		return nil
+	}
+
+	// only make a header when using TLS
+	if resp.TLS == nil {
+		return nil
 	}
 
 	v, ok := resp.Header["Public-Key-Pins"]
 	if !ok {
-		return header
+		return nil
+	}
+
+	header := &Header{
+		Sha256Pins: []string{},
 	}
 
 	for _, field := range strings.Split(v[0], ";") {
