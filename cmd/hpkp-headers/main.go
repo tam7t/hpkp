@@ -28,4 +28,8 @@ func main() {
 	h := hpkp.ParseHeader(resp)
 	j, _ := json.Marshal(h)
 	fmt.Println(string(j))
+
+	h = hpkp.ParseReportOnlyHeader(resp)
+	j, _ = json.Marshal(h)
+	fmt.Println(string(j))
 }
