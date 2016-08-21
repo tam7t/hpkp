@@ -84,7 +84,7 @@ func newPinDialer(s StorageReader, r PinFailureReporter, pinOnly bool, defaultTL
 			return c, nil
 		}
 
-		// do a normal dial, address isnt in hpkp cache
+		// do a normal dial, address isn't in hpkp cache
 		return tls.Dial(network, addr, defaultTLSConfig)
 	}
 }
