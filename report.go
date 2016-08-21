@@ -43,7 +43,7 @@ func NewPinFailure(host string, port int, h *Header, c tls.ConnectionState) (*Pi
 		ServedCertificateChain:    encodeCertificatesPEM(c.PeerCertificates),
 		ValidatedCertificateChain: encodeCertificatesPEM(verifiedChain),
 		KnownPins:                 h.Sha256Pins,
-	}, h.ReportUri
+	}, h.ReportURI
 }
 
 // encodeCertificatesPEM converts a slice of x509 certficates to a slice of PEM encoded strings

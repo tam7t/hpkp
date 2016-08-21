@@ -131,7 +131,7 @@ func TestNewPinFailure(t *testing.T) {
 		header         *Header
 		connState      tls.ConnectionState
 		expectedReport *PinFailure
-		expectedUri    string
+		expectedURI    string
 	}{
 		{
 			name: "nil test",
@@ -164,15 +164,15 @@ func TestNewPinFailure(t *testing.T) {
 				ServedCertificateChain:    certs[:1],
 				ValidatedCertificateChain: certs,
 			},
-			expectedUri: "",
+			expectedURI: "",
 		},
 	}
 
 	for _, test := range tests {
 		pf, uri := NewPinFailure(test.host, test.port, test.header, test.connState)
 
-		if uri != test.expectedUri {
-			t.Logf("want:%v", test.expectedUri)
+		if uri != test.expectedURI {
+			t.Logf("want:%v", test.expectedURI)
 			t.Logf("got:%v", uri)
 			t.Fatalf("test case failed: %s", test.name)
 		}
