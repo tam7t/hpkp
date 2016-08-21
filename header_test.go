@@ -64,9 +64,33 @@ func TestParseHeader(t *testing.T) {
 			name: "hpkp header, but over http",
 			response: &http.Response{
 				StatusCode: 200,
-				Header:     map[string][]string{},
+				Header: map[string][]string{
+					"Public-Key-Pins": []string{`max-age=3000; pin-sha256="d6qzRu9zOECb90Uez27xWltNsj0e1Md7GkYYkVoZWmM="; pin-sha256="E9CZ9INDbd+2eRQozYqqbQ2yXLVKB9+xcprMF+44U1g="`},
+				},
 			},
 			expected: nil,
+		},
+		{
+			name: "multiple headers",
+			response: &http.Response{
+				StatusCode: 200,
+				Header: map[string][]string{
+					"Public-Key-Pins": []string{
+						`max-age=3000; pin-sha256="d6qzRu9zOECb90Uez27xWltNsj0e1Md7GkYYkVoZWmM="; pin-sha256="E9CZ9INDbd+2eRQozYqqbQ2yXLVKB9+xcprMF+44U1g="`,
+						`max-age=3001; pin-sha256="bad header"`,
+					},
+				},
+				TLS: &tls.ConnectionState{},
+			},
+			expected: &Header{
+				MaxAge:            3000,
+				IncludeSubDomains: false,
+				Permanent:         false,
+				Sha256Pins: []string{
+					"d6qzRu9zOECb90Uez27xWltNsj0e1Md7GkYYkVoZWmM=",
+					"E9CZ9INDbd+2eRQozYqqbQ2yXLVKB9+xcprMF+44U1g=",
+				},
+			},
 		},
 		// https://tools.ietf.org/html/rfc7469#section-2.1.5
 		{
@@ -124,6 +148,7 @@ func TestParseHeader(t *testing.T) {
 					"E9CZ9INDbd+2eRQozYqqbQ2yXLVKB9+xcprMF+44U1g=",
 					"LPJNul+wow4m6DsqxbninhsWHlwfp0JecwQzYpOLmCQ=",
 				},
+				ReportUri: "http://example.com/pkp-report",
 			},
 		},
 		{
@@ -135,7 +160,6 @@ func TestParseHeader(t *testing.T) {
 				},
 				TLS: &tls.ConnectionState{},
 			},
-			// TODO: support Public-Key-Pins-Report-Only
 			expected: nil,
 		},
 		{
@@ -189,6 +213,100 @@ func TestParseHeader(t *testing.T) {
 	}
 }
 
+func TestParseReportOnlyHeader(t *testing.T) {
+	tests := []struct {
+		name     string
+		response *http.Response
+		expected *Header
+	}{
+		{
+			name:     "nil everything",
+			response: nil,
+			expected: nil,
+		},
+		{
+			name: "no header",
+			response: &http.Response{
+				StatusCode: 200,
+			},
+			expected: nil,
+		},
+		{
+			name: "hpkp header, but over http",
+			response: &http.Response{
+				StatusCode: 200,
+				Header: map[string][]string{
+					"Public-Key-Pins": []string{`max-age=3000; pin-sha256="d6qzRu9zOECb90Uez27xWltNsj0e1Md7GkYYkVoZWmM="; pin-sha256="E9CZ9INDbd+2eRQozYqqbQ2yXLVKB9+xcprMF+44U1g="`},
+				},
+			},
+			expected: nil,
+		},
+		{
+			name: "multiple headers",
+			response: &http.Response{
+				StatusCode: 200,
+				Header: map[string][]string{
+					"Public-Key-Pins-Report-Only": []string{
+						`max-age=3000; pin-sha256="d6qzRu9zOECb90Uez27xWltNsj0e1Md7GkYYkVoZWmM="; pin-sha256="E9CZ9INDbd+2eRQozYqqbQ2yXLVKB9+xcprMF+44U1g="`,
+						`max-age=3001; pin-sha256="bad header"`,
+					},
+				},
+				TLS: &tls.ConnectionState{},
+			},
+			expected: &Header{
+				MaxAge:            3000,
+				IncludeSubDomains: false,
+				Permanent:         false,
+				Sha256Pins: []string{
+					"d6qzRu9zOECb90Uez27xWltNsj0e1Md7GkYYkVoZWmM=",
+					"E9CZ9INDbd+2eRQozYqqbQ2yXLVKB9+xcprMF+44U1g=",
+				},
+			},
+		},
+		// https://tools.ietf.org/html/rfc7469#section-2.1.5
+		{
+			name: "hpkp header (1)",
+			response: &http.Response{
+				StatusCode: 200,
+				Header: map[string][]string{
+					"Public-Key-Pins": []string{`max-age=3000; pin-sha256="d6qzRu9zOECb90Uez27xWltNsj0e1Md7GkYYkVoZWmM="; pin-sha256="E9CZ9INDbd+2eRQozYqqbQ2yXLVKB9+xcprMF+44U1g="`},
+				},
+				TLS: &tls.ConnectionState{},
+			},
+			expected: nil,
+		},
+		{
+			name: "hpkp header (4)",
+			response: &http.Response{
+				StatusCode: 200,
+				Header: map[string][]string{
+					"Public-Key-Pins-Report-Only": []string{`max-age=2592000; pin-sha256="E9CZ9INDbd+2eRQozYqqbQ2yXLVKB9+xcprMF+44U1g="; pin-sha256="LPJNul+wow4m6DsqxbninhsWHlwfp0JecwQzYpOLmCQ="; report-uri="http://example.com/pkp-report"`},
+				},
+				TLS: &tls.ConnectionState{},
+			},
+			expected: &Header{
+				MaxAge:            2592000,
+				IncludeSubDomains: false,
+				Permanent:         false,
+				Sha256Pins: []string{
+					"E9CZ9INDbd+2eRQozYqqbQ2yXLVKB9+xcprMF+44U1g=",
+					"LPJNul+wow4m6DsqxbninhsWHlwfp0JecwQzYpOLmCQ=",
+				},
+				ReportUri: "http://example.com/pkp-report",
+			},
+		},
+	}
+
+	for _, test := range tests {
+		out := ParseReportOnlyHeader(test.response)
+		if !equalHeaders(out, test.expected) {
+			t.Logf("want:%v", test.expected)
+			t.Logf("got:%v", out)
+			t.Fatalf("test case failed: %s", test.name)
+		}
+	}
+}
+
 func equalHeaders(a, b *Header) bool {
 	if a == nil && b == nil {
 		return true
@@ -207,6 +325,10 @@ func equalHeaders(a, b *Header) bool {
 	}
 
 	if a.Permanent != b.Permanent {
+		return false
+	}
+
+	if a.ReportUri != b.ReportUri {
 		return false
 	}
 

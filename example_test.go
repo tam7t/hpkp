@@ -1,6 +1,7 @@
 package hpkp_test
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 
@@ -24,8 +25,17 @@ func Example() {
 	})
 
 	client := &http.Client{}
+	dialConf := &hpkp.DialerConfig{
+		Storage:   s,
+		PinOnly:   true,
+		TLSConfig: nil,
+		Reporter: func(p *hpkp.PinFailure, reportUri string) {
+			// TODO: report on PIN failure
+			fmt.Println(p)
+		},
+	}
 	client.Transport = &http.Transport{
-		DialTLS: hpkp.PinOnlyDialer(s),
+		DialTLS: dialConf.NewDialer(),
 	}
 
 	resp, err := client.Get("https://github.com")
@@ -33,5 +43,6 @@ func Example() {
 		log.Fatal(err)
 	}
 
-	log.Println(resp.StatusCode)
+	fmt.Println(resp.StatusCode)
+	// Output: 200
 }

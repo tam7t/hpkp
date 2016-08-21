@@ -14,6 +14,7 @@ type Header struct {
 	IncludeSubDomains bool
 	Permanent         bool
 	Sha256Pins        []string
+	ReportUri         string
 }
 
 // Matches checks whether the provided pin is in the header list
@@ -42,16 +43,47 @@ func ParseHeader(resp *http.Response) *Header {
 		return nil
 	}
 
-	header := &Header{
-		Sha256Pins: []string{},
+	// use the first header per RFC
+	return populate(&Header{}, v[0])
+}
+
+// ParseReportOnlyHeader parses the hpkp information from an http.Reponse.
+// The resulting header information should not be cached as max_age is
+// ignored on HPKP-RO headers per the RFC.
+func ParseReportOnlyHeader(resp *http.Response) *Header {
+	if resp == nil {
+		return nil
 	}
 
-	for _, field := range strings.Split(v[0], ";") {
+	// only make a header when using TLS
+	if resp.TLS == nil {
+		return nil
+	}
+
+	v, ok := resp.Header["Public-Key-Pins-Report-Only"]
+	if !ok {
+		return nil
+	}
+
+	// use the first header per RFC
+	return populate(&Header{}, v[0])
+}
+
+func populate(h *Header, v string) *Header {
+	h.Sha256Pins = []string{}
+
+	for _, field := range strings.Split(v, ";") {
 		field = strings.TrimSpace(field)
 
 		i := strings.Index(field, "pin-sha256")
 		if i >= 0 {
-			header.Sha256Pins = append(header.Sha256Pins, field[i+12:len(field)-1])
+			h.Sha256Pins = append(h.Sha256Pins, field[i+12:len(field)-1])
+			continue
+		}
+
+		i = strings.Index(field, "report-uri")
+		if i >= 0 {
+			h.ReportUri = field[i+12 : len(field)-1]
 			continue
 		}
 
@@ -59,17 +91,17 @@ func ParseHeader(resp *http.Response) *Header {
 		if i >= 0 {
 			ma, err := strconv.Atoi(field[i+8:])
 			if err == nil {
-				header.MaxAge = int64(ma)
+				h.MaxAge = int64(ma)
 			}
 			continue
 		}
 
 		if strings.Contains(field, "includeSubDomains") {
-			header.IncludeSubDomains = true
+			h.IncludeSubDomains = true
 			continue
 		}
 	}
 
-	header.Created = time.Now().Unix()
-	return header
+	h.Created = time.Now().Unix()
+	return h
 }

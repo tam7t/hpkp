@@ -55,8 +55,18 @@ s.Add("github.com", &hpkp.Header{
 })
 
 client := &http.Client{}
+dialConf := &hpkp.DialerConfig{
+	Storage:   s,
+	PinOnly:   true,
+	TLSConfig: nil,
+	Reporter: func(p *hpkp.PinFailure, reportUri string) {
+		// TODO: report on PIN failure
+		fmt.Println(p)
+	},
+}
+
 client.Transport = &http.Transport{
-    DialTLS: hpkp.PinOnlyDialer(s),
+	DialTLS: dialConf.NewDialer(),
 }
 resp, err := client.Get("https://github.com")
 ```
