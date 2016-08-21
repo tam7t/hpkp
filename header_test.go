@@ -148,7 +148,7 @@ func TestParseHeader(t *testing.T) {
 					"E9CZ9INDbd+2eRQozYqqbQ2yXLVKB9+xcprMF+44U1g=",
 					"LPJNul+wow4m6DsqxbninhsWHlwfp0JecwQzYpOLmCQ=",
 				},
-				ReportUri: "http://example.com/pkp-report",
+				ReportURI: "http://example.com/pkp-report",
 			},
 		},
 		{
@@ -292,7 +292,7 @@ func TestParseReportOnlyHeader(t *testing.T) {
 					"E9CZ9INDbd+2eRQozYqqbQ2yXLVKB9+xcprMF+44U1g=",
 					"LPJNul+wow4m6DsqxbninhsWHlwfp0JecwQzYpOLmCQ=",
 				},
-				ReportUri: "http://example.com/pkp-report",
+				ReportURI: "http://example.com/pkp-report",
 			},
 		},
 	}
@@ -328,7 +328,7 @@ func equalHeaders(a, b *Header) bool {
 		return false
 	}
 
-	if a.ReportUri != b.ReportUri {
+	if a.ReportURI != b.ReportURI {
 		return false
 	}
 

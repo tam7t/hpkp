@@ -14,7 +14,7 @@ type Header struct {
 	IncludeSubDomains bool
 	Permanent         bool
 	Sha256Pins        []string
-	ReportUri         string
+	ReportURI         string
 }
 
 // Matches checks whether the provided pin is in the header list
@@ -47,7 +47,7 @@ func ParseHeader(resp *http.Response) *Header {
 	return populate(&Header{}, v[0])
 }
 
-// ParseReportOnlyHeader parses the hpkp information from an http.Reponse.
+// ParseReportOnlyHeader parses the hpkp information from an http.Response.
 // The resulting header information should not be cached as max_age is
 // ignored on HPKP-RO headers per the RFC.
 func ParseReportOnlyHeader(resp *http.Response) *Header {
@@ -83,7 +83,7 @@ func populate(h *Header, v string) *Header {
 
 		i = strings.Index(field, "report-uri")
 		if i >= 0 {
-			h.ReportUri = field[i+12 : len(field)-1]
+			h.ReportURI = field[i+12 : len(field)-1]
 			continue
 		}
 
